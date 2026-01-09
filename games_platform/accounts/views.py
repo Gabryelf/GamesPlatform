@@ -3,10 +3,18 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, LoginForm
 from .models import CustomUser
+from django.apps import apps
 
 
 def home(request):
-    return render(request, 'accounts/home.html')
+    context = {}
+
+    if request.user.is_authenticated:
+        Game = apps.get_model('games', 'Game')
+        recent_games = Game.objects.filter(status='approved').order_by('-created_at')[:3]
+        context['recent_games'] = recent_games
+
+    return render(request, 'accounts/home.html', context)
 
 
 def register(request):

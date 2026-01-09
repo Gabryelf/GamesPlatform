@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ game.title }}{% endblock %}
+
+{% block content %}
+<div class="game-detail">
+    <div class="game-header">
+        <h1>{{ game.title }}</h1>
+        
+        {% if user.is_authenticated and user.is_admin %}
+        <div class="admin-actions">
+            {% if game.status == 'pending' %}
+                <a href="{% url 'moderate_game' game.pk 'approve' %}" class="btn btn-success">Одобрить</a>
+                <a href="{% url 'moderate_game' game.pk 'reject' %}" class="btn btn-danger">Отклонить</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="game-meta">
+        <p><strong>Разработчик:</strong> {{ game.developer.username }}</p>
+        <p><strong>Дата загрузки:</strong> {{ game.created_at|date:"d.m.Y H:i" }}</p>
+        <p><strong>Статус:</strong> 
+            <span class="status-{{ game.status }}">{{ game.get_status_display }}</span>
+        </p>
+        
+        {% if game.published_at %}
+            <p><strong>Опубликовано:</strong> {{ game.published_at|date:"d.m.Y H:i" }}</p>
+        {% endif %}
+    </div>
+    
+    {% if game.thumbnail %}
+    <div class="game-thumbnail-large">
+        <img src="{{ game.thumbnail.url }}" alt="{{ game.title }}">
+    </div>
+    {% endif %}
+    
+    <div class="game-description-full">
+        <h3>Описание игры</h3>
+        <p>{{ game.description|linebreaks }}</p>
+    </div>
+    
+    {% if game.status == 'approved' %}
+    <div class="game-play">
+        <h3>Играть</h3>
+        <iframe 
+            src="{{ game.html_file.url }}" 
+            class="game-iframe"
+            title="{{ game.title }}"
+            sandbox="allow-scripts allow-same-origin"
+        ></iframe>
+        <p class="iframe-note">
+            Если игра не отображается, 
+            <a href="{{ game.html_file.url }}" target="_blank">откройте ее в новом окне</a>
+        </p>
+    </div>
+    {% elif game.status == 'pending' %}
+    <div class="game-waiting">
+        <div class="alert alert-info">
+            <h3>⏳ Игра на модерации</h3>
+            <p>Эта игра ожидает проверки администратором. После одобрения она станет доступна всем пользователям.</p>
+            
+            {% if user == game.developer %}
+                <p>Вы можете <a href="{% url 'game_edit' game.pk %}">отредактировать игру</a> пока она на проверке.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% elif game.status == 'rejected' %}
+    <div class="game-rejected">
+        <div class="alert alert-error">
+            <h3>❌ Игра отклонена</h3>
+            <p>Эта игра была отклонена администратором и не будет опубликована.</p>
+            
+            {% if user == game.developer %}
+                <p>Вы можете <a href="{% url 'game_edit' game.pk %}">отредактировать игру</a> и отправить на повторную проверку.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="game-actions">
+        <a href="{% url 'game_list' %}" class="btn btn-secondary">Вернуться к каталогу</a>
+        
+        {% if game.can_edit user %}
+            <a href="{% url 'game_edit' game.pk %}" class="btn btn-primary">Редактировать</a>
+        {% endif %}
+        
+        {% if game.can_delete user %}
+            <a href="{% url 'game_delete' game.pk %}" class="btn btn-danger">Удалить</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

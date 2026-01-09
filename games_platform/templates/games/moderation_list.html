@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Модерация игр{% endblock %}
+
+{% block content %}
+<div class="moderation-container">
+    <h1>Модерация игр</h1>
+    <p class="moderation-description">
+        Здесь отображаются игры, ожидающие проверки. 
+        После проверки игры станут доступны всем пользователям.
+    </p>
+    
+    {% if pending_games %}
+    <div class="pending-games">
+        {% for game in pending_games %}
+        <div class="moderation-game-card">
+            <div class="game-preview">
+                {% if game.thumbnail %}
+                <img src="{{ game.thumbnail.url }}" alt="{{ game.title }}" class="moderation-thumbnail">
+                {% else %}
+                <div class="no-thumbnail">Нет превью</div>
+                {% endif %}
+            </div>
+            
+            <div class="game-details">
+                <h3>{{ game.title }}</h3>
+                <p><strong>Разработчик:</strong> {{ game.developer.username }}</p>
+                <p><strong>Дата загрузки:</strong> {{ game.created_at|date:"d.m.Y H:i" }}</p>
+                
+                <div class="game-description">
+                    {{ game.description|truncatechars:200 }}
+                </div>
+                
+                <div class="moderation-actions">
+                    <a href="{% url 'game_detail' game.pk %}" class="btn btn-primary">
+                        Подробнее
+                    </a>
+                    
+                    <a href="{{ game.html_file.url }}" class="btn btn-secondary" target="_blank">
+                        Посмотреть HTML
+                    </a>
+                    
+                    <a href="{% url 'moderate_game' game.pk 'approve' %}" class="btn btn-success">
+                        ✅ Одобрить
+                    </a>
+                    
+                    <a href="{% url 'moderate_game' game.pk 'reject' %}" class="btn btn-danger">
+                        ❌ Отклонить
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-pending-games">
+        <div class="alert alert-success">
+            <h3>🎉 Все игры проверены!</h3>
+            <p>Нет игр, ожидающих модерации. Отличная работа!</p>
+        </div>
+        <a href="{% url 'game_list' %}" class="btn btn-primary">Вернуться к каталогу</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

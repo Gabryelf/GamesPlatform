@@ -15,9 +15,38 @@
     {% else %}
     <div class="user-info">
         <p>Вы вошли как <strong>{{ user.get_user_type_display }}</strong></p>
-        {% if user.is_developer %}
-            <a href="#" class="btn btn-success">Загрузить игру</a>
-        {% endif %}
+        <div class="quick-actions">
+            <a href="{% url 'game_list' %}" class="btn btn-primary">Каталог игр</a>
+
+            {% if user.is_developer %}
+                <a href="{% url 'game_create' %}" class="btn btn-success">Загрузить игру</a>
+            {% endif %}
+
+            {% if user.is_admin %}
+                <a href="{% url 'moderation_list' %}" class="btn btn-warning">
+                    Модерация {% if pending_games_count > 0 %}({{ pending_games_count }}){% endif %}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Показываем последние одобренные игры -->
+    <div class="recent-games">
+        <h2>Последние игры</h2>
+        <div class="games-preview">
+            {% for game in recent_games %}
+            <div class="game-preview-card">
+                <h3>{{ game.title }}</h3>
+                <p>{{ game.description|truncatechars:80 }}</p>
+                <a href="{% url 'game_detail' game.pk %}" class="btn btn-sm btn-primary">
+                    {% if game.status == 'approved' %}Играть{% else %}Подробнее{% endif %}
+                </a>
+            </div>
+            {% empty %}
+            <p>Пока нет доступных игр. Будьте первым!</p>
+            {% endfor %}
+        </div>
+        <a href="{% url 'game_list' %}" class="btn btn-secondary">Все игры →</a>
     </div>
     {% endif %}
 </div>

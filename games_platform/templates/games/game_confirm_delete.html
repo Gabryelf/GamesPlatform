@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление игры{% endblock %}
+
+{% block content %}
+<div class="confirm-delete">
+    <h1>Удаление игры</h1>
+    
+    <div class="alert alert-error">
+        <h3>⚠️ Вы уверены, что хотите удалить игру "{{ game.title }}"?</h3>
+        <p>Это действие нельзя отменить. Все данные игры будут удалены.</p>
+    </div>
+    
+    <div class="game-info-preview">
+        <p><strong>Разработчик:</strong> {{ game.developer.username }}</p>
+        <p><strong>Дата создания:</strong> {{ game.created_at|date:"d.m.Y H:i" }}</p>
+        <p><strong>Статус:</strong> {{ game.get_status_display }}</p>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-danger">Да, удалить</button>
+            <a href="{% url 'game_detail' game.pk %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

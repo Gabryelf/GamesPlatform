@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Каталог игр{% endblock %}
+
+{% block content %}
+<div class="games-header">
+    <h1>Каталог игр</h1>
+    
+    {% if user.is_authenticated and user.is_developer %}
+        <a href="{% url 'game_create' %}" class="btn btn-success">Загрузить игру</a>
+    {% endif %}
+    
+    {% if user.is_authenticated and user.is_admin %}
+        <a href="{% url 'moderation_list' %}" class="btn btn-warning">
+            Модерация ({{ pending_games_count }})
+        </a>
+    {% endif %}
+</div>
+
+<div class="games-grid">
+    {% for game in games %}
+    <div class="game-card">
+        {% if game.thumbnail %}
+        <img src="{{ game.thumbnail.url }}" alt="{{ game.title }}" class="game-thumbnail">
+        {% else %}
+        <div class="game-thumbnail-placeholder">Нет превью</div>
+        {% endif %}
+        
+        <div class="game-info">
+            <h3>{{ game.title }}</h3>
+            <p class="game-developer">Разработчик: {{ game.developer.username }}</p>
+            <p class="game-description">{{ game.description|truncatechars:100 }}</p>
+            
+            <div class="game-status status-{{ game.status }}">
+                {{ game.get_status_display }}
+            </div>
+            
+            <div class="game-actions">
+                <a href="{% url 'game_detail' game.pk %}" class="btn btn-primary">
+                    {% if game.status == 'approved' %}Играть{% else %}Подробнее{% endif %}
+                </a>
+                
+                {% if game.can_edit user %}
+                    <a href="{% url 'game_edit' game.pk %}" class="btn btn-secondary">Редактировать</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="no-games">
+        <p>Пока нет доступных игр. Будьте первым, кто загрузит игру!</p>
+        {% if user.is_authenticated and user.is_developer %}
+            <a href="{% url 'game_create' %}" class="btn btn-success">Загрузить первую игру</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

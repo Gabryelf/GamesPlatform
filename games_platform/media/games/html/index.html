@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Micro Bit Deluxe</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .panel {
+            background-color: #34495e;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .display-panel {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .code-panel {
+            flex: 2;
+            min-width: 500px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        .grid-container {
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .pixel-grid {
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            grid-template-rows: repeat(25, 1fr);
+            gap: 2px;
+            width: 100%;
+            max-width: 600px;
+        }
+        
+        .pixel {
+            aspect-ratio: 1/1;
+            background-color: #222;
+            border-radius: 2px;
+            transition: background-color 0.1s;
+        }
+        
+        .pixel.on {
+            background-color: #00ff00;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+        }
+        
+        textarea {
+            width: 100%;
+            height: 400px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            border: 1px solid #7f8c8d;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+        }
+        
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #2c3e50;
+            display: none;
+        }
+        
+        .status.success {
+            display: block;
+            background-color: #27ae60;
+        }
+        
+        .status.error {
+            display: block;
+            background-color: #e74c3c;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .panel {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Micro Bit Deluxe</h1>
+            <p>Улучшенная версия светодиодного поля с 500 пикселями</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="panel display-panel">
+                <h2>Игровое поле</h2>
+                <div class="grid-container">
+                    <div class="pixel-grid" id="pixel-grid">
+                        <!-- Пиксели будут созданы через JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button id="run-btn">Запуск</button>
+                    <button id="clear-btn">Очистить</button>
+                    <button id="save-btn">Сохранить игру</button>
+                    <button id="load-btn">Загрузить игру</button>
+                </div>
+                
+                <div id="status" class="status"></div>
+            </div>
+            
+            <div class="panel code-panel">
+                <h2>Редактор кода</h2>
+                <textarea id="code-editor" placeholder="Напишите здесь код вашей игры..."></textarea>
+                
+                <div class="controls">
+                    <button id="format-btn">Форматировать код</button>
+                    <button id="example-btn">Пример игры</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Инициализация игрового поля
+        const grid = document.getElementById('pixel-grid');
+        const gridSize = 500; // 20x25
+        const pixels = [];
+        
+        // Создаем пиксели
+        for (let i = 0; i < gridSize; i++) {
+            const pixel = document.createElement('div');
+            pixel.className = 'pixel';
+            pixel.dataset.index = i;
+            grid.appendChild(pixel);
+            pixels.push(pixel);
+        }
+        
+        // API для работы с игровым полем
+        const gameAPI = {
+            // Установить пиксель
+            setPixel: (x, y, state) => {
+                if (x >= 0 && x < 20 && y >= 0 && y < 25) {
+                    const index = y * 20 + x;
+                    if (state) {
+                        pixels[index].classList.add('on');
+                    } else {
+                        pixels[index].classList.remove('on');
+                    }
+                }
+            },
+            
+            // Получить состояние пикселя
+            getPixel: (x, y) => {
+                if (x >= 0 && x < 20 && y >= 0 && y < 25) {
+                    const index = y * 20 + x;
+                    return pixels[index].classList.contains('on');
+                }
+                return false;
+            },
+            
+            // Очистить поле
+            clear: () => {
+                pixels.forEach(pixel => {
+                    pixel.classList.remove('on');
+                });
+            },
+            
+            // Отобразить изображение (массив 20x25)
+            display: (image) => {
+                gameAPI.clear();
+                for (let y = 0; y < 25; y++) {
+                    for (let x = 0; x < 20; x++) {
+                        if (image[y][x]) {
+                            gameAPI.setPixel(x, y, true);
+                        }
+                    }
+                }
+            },
+            
+            // Анимация (массив кадров)
+            animate: (frames, delay) => {
+                let currentFrame = 0;
+                const interval = setInterval(() => {
+                    if (currentFrame < frames.length) {
+                        gameAPI.display(frames[currentFrame]);
+                        currentFrame++;
+                    } else {
+                        clearInterval(interval);
+                    }
+                }, delay);
+                
+                return interval;
+            }
+        };
+        
+        // Элементы интерфейса
+        const codeEditor = document.getElementById('code-editor');
+        const runBtn = document.getElementById('run-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const saveBtn = document.getElementById('save-btn');
+        const loadBtn = document.getElementById('load-btn');
+        const formatBtn = document.getElementById('format-btn');
+        const exampleBtn = document.getElementById('example-btn');
+        const status = document.getElementById('status');
+        
+        // Показать статус
+        function showStatus(message, isError = false) {
+            status.textContent = message;
+            status.className = isError ? 'status error' : 'status success';
+            
+            setTimeout(() => {
+                status.className = 'status';
+            }, 3000);
+        }
+        
+        // Запуск кода
+        runBtn.addEventListener('click', () => {
+            try {
+                gameAPI.clear();
+                
+                // Добавляем API в область видимости выполняемого кода
+                const userCode = new Function('api', codeEditor.value);
+                userCode(gameAPI);
+                
+                showStatus('Код выполнен успешно!');
+            } catch (error) {
+                showStatus(`Ошибка: ${error.message}`, true);
+            }
+        });
+        
+        // Очистка поля
+        clearBtn.addEventListener('click', () => {
+            gameAPI.clear();
+            showStatus('Поле очищено');
+        });
+        
+        // Сохранение игры
+        saveBtn.addEventListener('click', () => {
+            const code = codeEditor.value;
+            if (!code.trim()) {
+                showStatus('Нет кода для сохранения', true);
+                return;
+            }
+            
+            const gameName = prompt('Введите название игры:');
+            if (gameName) {
+                localStorage.setItem(`microbit_game_${gameName}`, code);
+                showStatus(`Игра "${gameName}" сохранена!`);
+            }
+        });
+        
+        // Загрузка игры
+        loadBtn.addEventListener('click', () => {
+            const games = [];
+            
+            // Получаем все сохраненные игры
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('microbit_game_')) {
+                    games.push(key.replace('microbit_game_', ''));
+                }
+            }
+            
+            if (games.length === 0) {
+                showStatus('Нет сохраненных игр', true);
+                return;
+            }
+            
+            const gameName = prompt(`Доступные игры: ${games.join(', ')}\nВведите название игры для загрузки:`);
+            if (gameName) {
+                const code = localStorage.getItem(`microbit_game_${gameName}`);
+                if (code) {
+                    codeEditor.value = code;
+                    showStatus(`Игра "${gameName}" загружена!`);
+                } else {
+                    showStatus(`Игра "${gameName}" не найдена`, true);
+                }
+            }
+        });
+        
+        // Форматирование кода
+        formatBtn.addEventListener('click', () => {
+            try {
+                // Простое форматирование - добавление отступов
+                const lines = codeEditor.value.split('\n');
+                let indentLevel = 0;
+                let formattedCode = '';
+                
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    
+                    if (trimmedLine.endsWith('}')) {
+                        indentLevel--;
+                    }
+                    
+                    if (indentLevel > 0) {
+                        formattedCode += '    '.repeat(indentLevel);
+                    }
+                    
+                    formattedCode += trimmedLine + '\n';
+                    
+                    if (trimmedLine.endsWith('{')) {
+                        indentLevel++;
+                    }
+                }
+                
+                codeEditor.value = formattedCode;
+                showStatus('Код отформатирован');
+            } catch (error) {
+                showStatus('Ошибка при форматировании кода', true);
+            }
+        });
+        
+        // Загрузка примера игры
+        exampleBtn.addEventListener('click', () => {
+            const exampleCode = `// Пример игры: бегущая точка
+let x = 0;
+let y = 0;
+
+// Функция обновления экрана
+function update() {
+  api.clear();
+  api.setPixel(x, y, true);
+  
+  // Двигаем точку
+  x++;
+  if (x >= 20) {
+    x = 0;
+    y++;
+    if (y >= 25) {
+      y = 0;
+    }
+  }
+}
+
+// Запускаем анимацию с интервалом 100ms
+setInterval(update, 100);`;
+            
+            codeEditor.value = exampleCode;
+            showStatus('Пример игры загружен');
+        });
+        
+        // Инициализация редактора с простым примером
+        exampleBtn.click();
+    </script>
+</body>
+</html>
