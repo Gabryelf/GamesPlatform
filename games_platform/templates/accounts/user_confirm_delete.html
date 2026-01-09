@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Удаление пользователя{% endblock %}
+
+{% block content %}
+<div class="confirm-user-delete">
+    <h1>Удаление пользователя</h1>
+    
+    <div class="user-to-delete">
+        <div class="user-preview">
+            {% if user_to_delete.avatar %}
+                <img src="{{ user_to_delete.avatar.url }}" alt="{{ user_to_delete.username }}" class="avatar-medium">
+            {% else %}
+                <div class="avatar-placeholder-medium">
+                    {{ user_to_delete.username|first|upper }}
+                </div>
+            {% endif %}
+            
+            <div class="user-info">
+                <h3>{{ user_to_delete.username }}</h3>
+                <p><strong>Тип:</strong> {{ user_to_delete.get_user_type_display }}</p>
+                <p><strong>Email:</strong> {{ user_to_delete.email|default:"Не указан" }}</p>
+                <p><strong>Зарегистрирован:</strong> {{ user_to_delete.date_joined|date:"d.m.Y H:i" }}</p>
+            </div>
+        </div>
+    </div>
+    
+    {% if game_count > 0 %}
+    <div class="warning-games">
+        <div class="alert alert-error">
+            <h4>⚠️ Внимание!</h4>
+            <p>У этого пользователя {{ game_count }} игр. Все игры будут удалены вместе с пользователем.</p>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="delete-warning">
+        <div class="alert alert-error">
+            <h3>Вы уверены, что хотите удалить этого пользователя?</h3>
+            <p>Это действие невозможно отменить. Все данные пользователя будут безвозвратно удалены.</p>
+        </div>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-actions">
+            <button type="submit" class="btn btn-danger">Да, удалить пользователя</button>
+            <a href="{% url 'user_detail' user_to_delete.pk %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

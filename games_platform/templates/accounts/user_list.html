@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Управление пользователями{% endblock %}
+
+{% block content %}
+<div class="user-management">
+    <div class="management-header">
+        <h1>Управление пользователями</h1>
+        
+        <div class="management-actions">
+            {% if user.is_admin %}
+                <a href="{% url 'user_create_admin' %}" class="btn btn-success">
+                    + Создать пользователя
+                </a>
+            {% endif %}
+            
+            <a href="{% url 'profile' %}" class="btn btn-secondary">Мой профиль</a>
+        </div>
+    </div>
+    
+    <!-- Поиск и фильтры -->
+    <div class="user-filters">
+        <form method="get" class="filter-form">
+            <div class="filter-group">
+                <input type="text" 
+                       name="search" 
+                       placeholder="Поиск по имени или email..." 
+                       value="{{ search_query }}"
+                       class="search-input">
+                
+                <select name="type" class="type-select">
+                    <option value="">Все типы</option>
+                    {% for type_code, type_name in user_type_choices %}
+                        <option value="{{ type_code }}" {% if user_type_filter == type_code %}selected{% endif %}>
+                            {{ type_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                
+                <button type="submit" class="btn btn-primary">Применить</button>
+                
+                {% if search_query or user_type_filter %}
+                    <a href="{% url 'user_list' %}" class="btn btn-secondary">Сбросить</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+    
+    <!-- Таблица пользователей -->
+    <div class="users-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Пользователь</th>
+                    <th>Тип</th>
+                    <th>Email</th>
+                    <th>Дата регистрации</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for profile_user in users %}
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            {% if profile_user.avatar %}
+                                <img src="{{ profile_user.avatar.url }}" alt="{{ profile_user.username }}" class="user-avatar-small">
+                            {% endif %}
+                            <div>
+                                <strong>{{ profile_user.username }}</strong>
+                                {% if profile_user.get_full_name %}
+                                    <br><small>{{ profile_user.get_full_name }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="user-type-badge type-{{ profile_user.user_type }}">
+                            {{ profile_user.get_user_type_display }}
+                        </span>
+                    </td>
+                    <td>{{ profile_user.email|default:"Не указан" }}</td>
+                    <td>{{ profile_user.date_joined|date:"d.m.Y" }}</td>
+                    <td>
+                        {% if profile_user.is_active %}
+                            <span class="status-active">Активен</span>
+                        {% else %}
+                            <span class="status-inactive">Заблокирован</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="user-actions">
+                            <a href="{% url 'user_detail' profile_user.pk %}" class="btn btn-sm btn-primary">
+                                Просмотр
+                            </a>
+                            
+
+                                <a href="{% url 'user_edit' profile_user.pk %}" class="btn btn-sm btn-secondary">
+                                    Редактировать
+                                </a>
+
+                            
+
+                                <a href="{% url 'user_delete' profile_user.pk %}" class="btn btn-sm btn-danger">
+                                    Удалить
+                                </a>
+
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">
+                        <p>Пользователи не найдены</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Статистика -->
+    <div class="user-stats">
+        <h3>Статистика</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ total_users }}</div>
+                <div class="stat-label">Всего пользователей</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ active_users }}</div>
+                <div class="stat-label">Активных</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ developers_count }}</div>
+                <div class="stat-label">Разработчиков</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ admins_count }}</div>
+                <div class="stat-label">Администраторов</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

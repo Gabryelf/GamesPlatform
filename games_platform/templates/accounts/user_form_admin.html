@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="user-create-container">
+    <h1>{{ title }}</h1>
+    
+    <div class="create-info">
+        <div class="alert alert-info">
+            <h4>Информация:</h4>
+            <ul>
+                {% if user.is_owner %}
+                    <li>Вы можете создавать пользователей с любыми ролями</li>
+                {% elif user.is_admin %}
+                    <li>Вы можете создавать только игроков и разработчиков</li>
+                {% endif %}
+                <li>Пользователь получит email с уведомлением о создании аккаунта</li>
+                <li>Пароль будет сгенерирован автоматически и отправлен на email</li>
+            </ul>
+        </div>
+    </div>
+    
+    <form method="post" class="user-create-form">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div class="form-group">
+            {{ field.label_tag }}
+            {{ field }}
+            
+            {% if field.help_text %}
+                <small class="form-help">{{ field.help_text }}</small>
+            {% endif %}
+            
+            {% if field.errors %}
+                <div class="error">{{ field.errors }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">Создать пользователя</button>
+            <a href="{% url 'user_list' %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

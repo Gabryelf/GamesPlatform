@@ -24,6 +24,8 @@ class CustomUser(AbstractUser):
         verbose_name='Аватар'
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата регистрации')
+    is_active = models.BooleanField(default=True, verbose_name='Активен')
+    last_login_ip = models.GenericIPAddressField(null=True, blank=True, verbose_name='IP последнего входа')
 
     def __str__(self):
         return f"{self.username} ({self.get_user_type_display()})"
@@ -39,3 +41,25 @@ class CustomUser(AbstractUser):
 
     def is_player(self):
         return self.user_type in ['player', 'developer', 'admin', 'owner']
+
+    def can_be_deleted_by(self, user):
+        """Определяет, может ли текущий пользователь удалить этого пользователя"""
+        if user.is_owner():
+            # Владелец может удалить любого, кроме себя
+            return self != user
+        elif user.is_admin():
+            # Админ может удалить только игроков и разработчиков
+            return self.user_type in ['player', 'developer']
+        return False
+
+    def can_be_edited_by(self, user):
+        """Определяет, может ли текущий пользователь редактировать этого пользователя"""
+        if user.is_owner():
+            return True
+        elif user.is_admin():
+            # Админ может редактировать только игроков и разработчиков
+            return self.user_type in ['player', 'developer']
+        elif user == self:
+            # Пользователь может редактировать себя
+            return True
+        return False

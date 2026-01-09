@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Профиль - {{ profile_user.username }}{% endblock %}
+
+{% block content %}
+<div class="user-profile">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {% if profile_user.avatar %}
+                <img src="{{ profile_user.avatar.url }}" alt="{{ profile_user.username }}" class="avatar-large">
+            {% else %}
+                <div class="avatar-placeholder-large">
+                    {{ profile_user.username|first|upper }}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="profile-info">
+            <h1>{{ profile_user.username }}</h1>
+            
+            <div class="profile-meta">
+                <span class="user-type-badge type-{{ profile_user.user_type }}">
+                    {{ profile_user.get_user_type_display }}
+                </span>
+                
+                {% if profile_user.is_active %}
+                    <span class="status-badge status-active">Активен</span>
+                {% else %}
+                    <span class="status-badge status-inactive">Заблокирован</span>
+                {% endif %}
+                
+                <span class="registration-date">
+                    Зарегистрирован: {{ profile_user.date_joined|date:"d.m.Y" }}
+                </span>
+            </div>
+            
+            {% if profile_user.get_full_name %}
+                <p class="full-name"><strong>Имя:</strong> {{ profile_user.get_full_name }}</p>
+            {% endif %}
+            
+            {% if profile_user.email %}
+                <p class="email"><strong>Email:</strong> {{ profile_user.email }}</p>
+            {% endif %}
+            
+            {% if profile_user.last_login_ip %}
+                <p class="last-ip"><strong>Последний IP:</strong> {{ profile_user.last_login_ip }}</p>
+            {% endif %}
+            
+            {% if profile_user.bio %}
+                <div class="bio">
+                    <h3>О себе:</h3>
+                    <p>{{ profile_user.bio|linebreaks }}</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Действия для администраторов -->
+    {% if user.is_admin and user.can_be_edited_by user %}
+    <div class="admin-actions-section">
+        <h3>Административные действия</h3>
+        <div class="action-buttons">
+            {% if profile_user.can_be_edited_by user %}
+                <a href="{% url 'user_edit' profile_user.pk %}" class="btn btn-primary">
+                    Редактировать профиль
+                </a>
+            {% endif %}
+            
+            {% if profile_user.can_be_deleted_by user and profile_user != user %}
+                <a href="{% url 'user_delete' profile_user.pk %}" class="btn btn-danger">
+                    Удалить пользователя
+                </a>
+            {% endif %}
+            
+            {% if profile_user.can_be_edited_by user and profile_user != user %}
+                <a href="{% url 'user_toggle_active' profile_user.pk %}" class="btn btn-warning">
+                    {% if profile_user.is_active %}
+                        Заблокировать
+                    {% else %}
+                        Разблокировать
+                    {% endif %}
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Игры пользователя (если разработчик) -->
+    {% if user_games %}
+    <div class="user-games-section">
+        <h3>Игры пользователя</h3>
+        
+        {% if user_games %}
+        <div class="games-list">
+            {% for game in user_games %}
+            <div class="user-game-card">
+                <div class="game-title">
+                    <h4>{{ game.title }}</h4>
+                    <span class="game-status status-{{ game.status }}">
+                        {{ game.get_status_display }}
+                    </span>
+                </div>
+                
+                <p class="game-description">{{ game.description|truncatechars:150 }}</p>
+                
+                <div class="game-meta">
+                    <span>Создана: {{ game.created_at|date:"d.m.Y" }}</span>
+                    {% if game.published_at %}
+                        <span>Опубликована: {{ game.published_at|date:"d.m.Y" }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="game-actions">
+                    <a href="{% url 'game_detail' game.pk %}" class="btn btn-sm btn-primary">
+                        Подробнее
+                    </a>
+                    
+                    {% if game.can_edit user %}
+                        <a href="{% url 'game_edit' game.pk %}" class="btn btn-sm btn-secondary">
+                            Редактировать
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="no-games-message">У пользователя пока нет игр.</p>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- Кнопки навигации -->
+    <div class="profile-navigation">
+        <a href="{% url 'user_list' %}" class="btn btn-secondary">
+            ← К списку пользователей
+        </a>
+        
+        {% if user == profile_user %}
+            <a href="{% url 'profile' %}" class="btn btn-primary">Мой профиль</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

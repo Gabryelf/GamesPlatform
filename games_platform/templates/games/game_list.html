@@ -40,9 +40,9 @@
                     {% if game.status == 'approved' %}Играть{% else %}Подробнее{% endif %}
                 </a>
                 
-                {% if game.can_edit user %}
+
                     <a href="{% url 'game_edit' game.pk %}" class="btn btn-secondary">Редактировать</a>
-                {% endif %}
+
             </div>
         </div>
     </div>
