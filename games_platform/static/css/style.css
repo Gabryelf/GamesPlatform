@@ -1174,3 +1174,437 @@ footer {
         text-align: center;
     }
 }
+
+/* Стили для рейтингов и комментариев */
+
+/* Статистика игры */
+.game-stats {
+    display: flex;
+    gap: 1.5rem;
+    margin: 1rem 0;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.stat-icon {
+    font-size: 1rem;
+}
+
+.rating-stat {
+    color: #f39c12;
+    font-weight: bold;
+}
+
+/* Рейтинг игры */
+.game-rating-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.rating-form {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.rating-stars {
+    display: flex;
+    direction: rtl;
+    gap: 0.25rem;
+}
+
+.star-label {
+    cursor: pointer;
+    font-size: 2rem;
+    color: #ddd;
+    transition: color 0.2s;
+}
+
+.star-label:hover,
+.star-label:hover ~ .star-label,
+.star-label.active,
+.star-label.active ~ .star-label {
+    color: #f39c12;
+}
+
+.star-label input {
+    display: none;
+}
+
+.average-rating {
+    margin-left: auto;
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.rating-notice {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    text-align: center;
+}
+
+/* Лайки/дизлайки */
+.like-section {
+    display: flex;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.like-btn,
+.dislike-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+}
+
+.like-btn:hover {
+    border-color: #2ecc71;
+    background: #f0fff4;
+}
+
+.dislike-btn:hover {
+    border-color: #e74c3c;
+    background: #fff0f0;
+}
+
+.like-btn.active {
+    border-color: #2ecc71;
+    background: #2ecc71;
+    color: white;
+}
+
+.dislike-btn.active {
+    border-color: #e74c3c;
+    background: #e74c3c;
+    color: white;
+}
+
+/* Запуск игры */
+.play-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.play-count {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.game-placeholder {
+    padding: 3rem;
+    text-align: center;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #ddd;
+    color: #7f8c8d;
+}
+
+/* Комментарии */
+.comments-section {
+    margin: 3rem 0;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.comment-form {
+    margin-bottom: 2rem;
+}
+
+.comment-textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+    margin-bottom: 1rem;
+}
+
+.comment-textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.auth-notice {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    text-align: center;
+    color: #7f8c8d;
+}
+
+.comments-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.comment {
+    padding: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.comment-author {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.comment-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.comment-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+}
+
+.author-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.author-name {
+    font-weight: bold;
+    color: #2c3e50;
+    text-decoration: none;
+}
+
+.author-name:hover {
+    color: #3498db;
+}
+
+.comment-date {
+    font-size: 0.8rem;
+    color: #95a5a6;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #3498db;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0;
+    text-decoration: underline;
+}
+
+.btn-link:hover {
+    color: #2980b9;
+}
+
+.text-danger {
+    color: #e74c3c;
+}
+
+.comment-text {
+    line-height: 1.6;
+    color: #333;
+}
+
+.edit-comment-form {
+    margin-top: 1rem;
+}
+
+.edit-textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: vertical;
+    margin-bottom: 0.5rem;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.no-comments {
+    text-align: center;
+    padding: 2rem;
+    color: #7f8c8d;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+/* Рейтинг в карточках игр */
+.rating-display {
+    margin: 0.5rem 0;
+}
+
+.stars {
+    display: flex;
+    gap: 0.1rem;
+    font-size: 1.2rem;
+}
+
+.star {
+    color: #ddd;
+}
+
+.star.filled {
+    color: #f39c12;
+}
+
+.rating-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.rating-value {
+    font-weight: bold;
+    color: #f39c12;
+}
+
+.rating-count {
+    color: #7f8c8d;
+}
+
+.game-stats-small {
+    display: flex;
+    gap: 1rem;
+    margin: 0.5rem 0;
+    font-size: 0.85rem;
+    color: #7f8c8d;
+}
+
+/* Страницы популярных игр */
+.popular-games,
+.best-rated-games {
+    background: white;
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.page-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Анимации */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.like-btn.active,
+.dislike-btn.active {
+    animation: pulse 0.3s ease;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .game-stats {
+        gap: 1rem;
+    }
+
+    .stat-item {
+        font-size: 0.8rem;
+    }
+
+    .rating-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .average-rating {
+        margin-left: 0;
+        text-align: center;
+    }
+
+    .comment-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .comment-actions {
+        align-self: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .like-section {
+        flex-direction: column;
+    }
+
+    .like-btn,
+    .dislike-btn {
+        justify-content: center;
+    }
+
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .page-actions {
+        flex-direction: column;
+    }
+}

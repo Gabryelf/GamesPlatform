@@ -18,39 +18,130 @@
     </div>
     
     <div class="game-meta">
-        <p><strong>Разработчик:</strong> {{ game.developer.username }}</p>
+        <p><strong>Разработчик:</strong>
+            <a href="{% url 'user_detail' game.developer.pk %}">{{ game.developer.username }}</a>
+        </p>
         <p><strong>Дата загрузки:</strong> {{ game.created_at|date:"d.m.Y H:i" }}</p>
-        <p><strong>Статус:</strong> 
+        <p><strong>Статус:</strong>
             <span class="status-{{ game.status }}">{{ game.get_status_display }}</span>
         </p>
-        
+
+        <!-- Статистика игры -->
+        <div class="game-stats">
+            <span class="stat-item">
+                <i class="stat-icon">👁️</i> {{ game.get_view_count }} просмотров
+            </span>
+            <span class="stat-item">
+                <i class="stat-icon">🎮</i> {{ game.get_play_count }} запусков
+            </span>
+            <span class="stat-item">
+                <i class="stat-icon">💬</i> {{ game.get_comment_count }} комментариев
+            </span>
+
+            {% if average_rating > 0 %}
+            <span class="stat-item rating-stat">
+                <i class="stat-icon">⭐</i>
+                {{ average_rating }} ({{ rating_count }} оценок)
+            </span>
+            {% endif %}
+        </div>
+
         {% if game.published_at %}
             <p><strong>Опубликовано:</strong> {{ game.published_at|date:"d.m.Y H:i" }}</p>
         {% endif %}
     </div>
-    
+
     {% if game.thumbnail %}
     <div class="game-thumbnail-large">
         <img src="{{ game.thumbnail.url }}" alt="{{ game.title }}">
     </div>
     {% endif %}
-    
+
     <div class="game-description-full">
         <h3>Описание игры</h3>
         <p>{{ game.description|linebreaks }}</p>
     </div>
-    
+
+    <!-- Рейтинг игры -->
+    {% if user.is_authenticated and game.status == 'approved' %}
+    <div class="game-rating-section">
+        <h3>Оцените игру</h3>
+
+        <form method="post" action="{% url 'rate_game' game.pk %}" class="rating-form">
+            {% csrf_token %}
+
+            <div class="rating-stars">
+                {% for i in "12345" %}
+                    {% with i=i|add:"0" %}
+                    <label class="star-label">
+                        <input type="radio" name="rating" value="{{ i }}"
+                               {% if user_rating == i %}checked{% endif %}>
+                        <span class="star">★</span>
+                    </label>
+                    {% endwith %}
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm">
+                {% if user_rating > 0 %}Изменить оценку{% else %}Оценить{% endif %}
+            </button>
+
+            {% if average_rating > 0 %}
+            <div class="average-rating">
+                Средняя оценка: <strong>{{ average_rating }}</strong> ({{ rating_count }} оценок)
+            </div>
+            {% endif %}
+        </form>
+    </div>
+    {% elif game.status == 'approved' %}
+    <div class="rating-notice">
+        <p><a href="{% url 'login' %}">Войдите</a>, чтобы оценить игру</p>
+
+        {% if average_rating > 0 %}
+        <div class="average-rating">
+            Средняя оценка: <strong>{{ average_rating }}</strong> ({{ rating_count }} оценок)
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Лайки/Дизлайки -->
+    {% if game.status == 'approved' %}
+    <div class="like-section">
+        <button class="like-btn" data-game-id="{{ game.pk }}" data-action="like">
+            👍 <span class="like-count">{{ game.stats.likes|default:0 }}</span>
+        </button>
+        <button class="dislike-btn" data-game-id="{{ game.pk }}" data-action="dislike">
+            👎 <span class="dislike-count">{{ game.stats.dislikes|default:0 }}</span>
+        </button>
+    </div>
+    {% endif %}
+
     {% if game.status == 'approved' %}
     <div class="game-play">
         <h3>Играть</h3>
-        <iframe 
-            src="{{ game.html_file.url }}" 
+        <div class="play-header">
+            <button class="btn btn-success btn-sm" id="increment-play">
+                🎮 Запустить игру
+            </button>
+            <span class="play-count">Запусков: {{ game.get_play_count }}</span>
+        </div>
+
+        <iframe
+            src="{{ game.html_file.url }}"
             class="game-iframe"
+            id="game-frame"
             title="{{ game.title }}"
             sandbox="allow-scripts allow-same-origin"
+            style="display: none;"
         ></iframe>
+
+        <div id="game-placeholder" class="game-placeholder">
+            <p>Нажмите "Запустить игру", чтобы начать играть</p>
+        </div>
+
         <p class="iframe-note">
-            Если игра не отображается, 
+            Если игра не отображается,
             <a href="{{ game.html_file.url }}" target="_blank">откройте ее в новом окне</a>
         </p>
     </div>
@@ -59,7 +150,7 @@
         <div class="alert alert-info">
             <h3>⏳ Игра на модерации</h3>
             <p>Эта игра ожидает проверки администратором. После одобрения она станет доступна всем пользователям.</p>
-            
+
             {% if user == game.developer %}
                 <p>Вы можете <a href="{% url 'game_edit' game.pk %}">отредактировать игру</a> пока она на проверке.</p>
             {% endif %}
@@ -70,22 +161,111 @@
         <div class="alert alert-error">
             <h3>❌ Игра отклонена</h3>
             <p>Эта игра была отклонена администратором и не будет опубликована.</p>
-            
+
             {% if user == game.developer %}
                 <p>Вы можете <a href="{% url 'game_edit' game.pk %}">отредактировать игру</a> и отправить на повторную проверку.</p>
             {% endif %}
         </div>
     </div>
     {% endif %}
-    
+
+    <!-- Комментарии -->
+    {% if game.status == 'approved' %}
+    <div class="comments-section">
+        <h3>Комментарии ({{ comments.count }})</h3>
+
+        {% if user.is_authenticated %}
+        <form method="post" action="{% url 'add_comment' game.pk %}" class="comment-form">
+            {% csrf_token %}
+            {{ comment_form.text }}
+            <button type="submit" class="btn btn-primary">Добавить комментарий</button>
+        </form>
+        {% else %}
+        <p class="auth-notice">
+            <a href="{% url 'login' %}">Войдите</a>, чтобы оставить комментарий
+        </p>
+        {% endif %}
+
+        <div class="comments-list">
+            {% for comment in comments %}
+            <div class="comment" id="comment-{{ comment.pk }}">
+                <div class="comment-header">
+                    <div class="comment-author">
+                        {% if comment.user.avatar %}
+                            <img src="{{ comment.user.avatar.url }}" alt="{{ comment.user.username }}" class="comment-avatar">
+                        {% else %}
+                            <div class="comment-avatar-placeholder">
+                                {{ comment.user.username|first|upper }}
+                            </div>
+                        {% endif %}
+                        <div class="author-info">
+                            <a href="{% url 'user_detail' comment.user.pk %}" class="author-name">
+                                {{ comment.user.username }}
+                            </a>
+                            <span class="comment-date">
+                                {{ comment.created_at|date:"d.m.Y H:i" }}
+                                {% if comment.is_edited %}
+                                    (ред.)
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if user == comment.user or user.is_admin or user == game.developer %}
+                    <div class="comment-actions">
+                        {% if user == comment.user %}
+                            <button class="btn-edit-comment btn-link" data-comment-id="{{ comment.pk }}">
+                                Редактировать
+                            </button>
+                        {% endif %}
+
+                        <form method="post" action="{% url 'delete_comment' comment.pk %}"
+                              class="delete-comment-form"
+                              onsubmit="return confirm('Удалить комментарий?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-link text-danger">Удалить</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="comment-text" id="comment-text-{{ comment.pk }}">
+                    {{ comment.text|linebreaks }}
+                </div>
+
+                <!-- Форма редактирования (скрыта) -->
+                {% if user == comment.user %}
+                <form method="post" action="{% url 'edit_comment' comment.pk %}"
+                      class="edit-comment-form" id="edit-form-{{ comment.pk }}" style="display: none;">
+                    {% csrf_token %}
+                    <textarea name="text" rows="3" class="edit-textarea">{{ comment.text }}</textarea>
+                    <div class="edit-actions">
+                        <button type="submit" class="btn btn-primary btn-sm">Сохранить</button>
+                        <button type="button" class="btn btn-secondary btn-sm cancel-edit"
+                                data-comment-id="{{ comment.pk }}">
+                            Отмена
+                        </button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="no-comments">
+                <p>Пока нет комментариев. Будьте первым!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <div class="game-actions">
         <a href="{% url 'game_list' %}" class="btn btn-secondary">Вернуться к каталогу</a>
-        
-        {% if game.can_edit user %}
+
+        {% if can_edit %}
             <a href="{% url 'game_edit' game.pk %}" class="btn btn-primary">Редактировать</a>
         {% endif %}
-        
-        {% if game.can_delete user %}
+
+        {% if can_delete %}
             <a href="{% url 'game_delete' game.pk %}" class="btn btn-danger">Удалить</a>
         {% endif %}
     </div>

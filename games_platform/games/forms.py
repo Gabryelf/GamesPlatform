@@ -1,5 +1,5 @@
 from django import forms
-from .models import Game
+from .models import Game, Comment, GameRating
 
 
 class GameForm(forms.ModelForm):
@@ -22,3 +22,31 @@ class GameForm(forms.ModelForm):
                 raise forms.ValidationError('Размер файла не должен превышать 5MB')
 
         return html_file
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['text']
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Оставьте ваш комментарий...',
+                'class': 'comment-textarea'
+            }),
+        }
+        labels = {
+            'text': '',
+        }
+
+
+class RatingForm(forms.ModelForm):
+    class Meta:
+        model = GameRating
+        fields = ['rating']
+        widgets = {
+            'rating': forms.RadioSelect(choices=[(i, str(i)) for i in range(1, 6)]),
+        }
+        labels = {
+            'rating': 'Оценка',
+        }

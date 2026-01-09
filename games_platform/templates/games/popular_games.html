@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="popular-games">
+    <div class="page-header">
+        <h1>{{ title }}</h1>
+        <div class="page-actions">
+            <a href="{% url 'best_rated_games' %}" class="btn btn-primary">
+                Лучшие по рейтингу
+            </a>
+            <a href="{% url 'game_list' %}" class="btn btn-secondary">
+                Все игры
+            </a>
+        </div>
+    </div>
+    
+    <div class="games-grid">
+        {% for game_data in games %}
+        <div class="game-card">
+            {% if game_data.game.thumbnail %}
+            <img src="{{ game_data.game.thumbnail.url }}" alt="{{ game_data.game.title }}" class="game-thumbnail">
+            {% else %}
+            <div class="game-thumbnail-placeholder">Нет превью</div>
+            {% endif %}
+            
+            <div class="game-info">
+                <h3>{{ game_data.game.title }}</h3>
+                <p class="game-developer">Разработчик: {{ game_data.game.developer.username }}</p>
+                
+                <div class="game-stats-small">
+                    <span class="stat">
+                        <i class="stat-icon">👁️</i> {{ game_data.views }}
+                    </span>
+                    <span class="stat">
+                        <i class="stat-icon">🎮</i> {{ game_data.plays }}
+                    </span>
+                    
+                    {% if game_data.rating > 0 %}
+                    <span class="stat rating-stat">
+                        <i class="stat-icon">⭐</i> {{ game_data.rating }}
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <p class="game-description">{{ game_data.game.description|truncatechars:100 }}</p>
+                
+                <div class="game-actions">
+                    <a href="{% url 'game_detail' game_data.game.pk %}" class="btn btn-primary">
+                        Играть
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="no-games">
+            <p>Пока нет популярных игр.</p>
+            <a href="{% url 'game_list' %}" class="btn btn-primary">Посмотреть все игры</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

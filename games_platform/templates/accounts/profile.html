@@ -105,7 +105,7 @@
                             Подробнее
                         </a>
 
-                        {% if game.can_edit user %}
+                        {% if game.can_edit %}
                             <a href="{% url 'game_edit' game.pk %}" class="btn btn-sm btn-secondary">
                                 Редактировать
                             </a>

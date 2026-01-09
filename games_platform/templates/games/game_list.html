@@ -6,15 +6,51 @@
 <div class="games-header">
     <h1>Каталог игр</h1>
     
-    {% if user.is_authenticated and user.is_developer %}
-        <a href="{% url 'game_create' %}" class="btn btn-success">Загрузить игру</a>
-    {% endif %}
-    
-    {% if user.is_authenticated and user.is_admin %}
-        <a href="{% url 'moderation_list' %}" class="btn btn-warning">
-            Модерация ({{ pending_games_count }})
-        </a>
-    {% endif %}
+    <div class="games-controls">
+        <!-- Поиск -->
+        <form method="get" class="search-form">
+            <input type="text"
+                   name="search"
+                   placeholder="Поиск игр..."
+                   value="{{ search_query }}"
+                   class="search-input">
+            <button type="submit" class="btn btn-primary">Найти</button>
+
+            {% if search_query %}
+                <a href="{% url 'game_list' %}" class="btn btn-secondary">Сбросить</a>
+            {% endif %}
+        </form>
+
+        <!-- Сортировка -->
+        <div class="sort-options">
+            <span>Сортировка:</span>
+            <a href="?sort=newest{% if search_query %}&search={{ search_query }}{% endif %}"
+               class="sort-option {% if sort_by == 'newest' %}active{% endif %}">
+                Новые
+            </a>
+            <a href="?sort=popular{% if search_query %}&search={{ search_query }}{% endif %}"
+               class="sort-option {% if sort_by == 'popular' %}active{% endif %}">
+                Популярные
+            </a>
+            <a href="?sort=rating{% if search_query %}&search={{ search_query }}{% endif %}"
+               class="sort-option {% if sort_by == 'rating' %}active{% endif %}">
+                По рейтингу
+            </a>
+        </div>
+
+        <!-- Действия -->
+        <div class="games-actions">
+            {% if user.is_authenticated and user.is_developer %}
+                <a href="{% url 'game_create' %}" class="btn btn-success">Загрузить игру</a>
+            {% endif %}
+
+            {% if user.is_authenticated and user.is_admin %}
+                <a href="{% url 'moderation_list' %}" class="btn btn-warning">
+                    Модерация ({{ pending_games_count }})
+                </a>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <div class="games-grid">
@@ -25,24 +61,43 @@
         {% else %}
         <div class="game-thumbnail-placeholder">Нет превью</div>
         {% endif %}
-        
+
         <div class="game-info">
             <h3>{{ game.title }}</h3>
             <p class="game-developer">Разработчик: {{ game.developer.username }}</p>
+
+            <!-- Статистика игры -->
+            <div class="game-stats-small">
+                <span class="stat">
+                    <i class="stat-icon">👁️</i> {{ game.get_view_count }}
+                </span>
+                <span class="stat">
+                    <i class="stat-icon">🎮</i> {{ game.get_play_count }}
+                </span>
+
+                {% if game.get_average_rating > 0 %}
+                <span class="stat rating-stat">
+                    <i class="stat-icon">⭐</i> {{ game.get_average_rating }}
+                </span>
+                {% endif %}
+            </div>
+
             <p class="game-description">{{ game.description|truncatechars:100 }}</p>
-            
+
             <div class="game-status status-{{ game.status }}">
                 {{ game.get_status_display }}
             </div>
-            
+
             <div class="game-actions">
                 <a href="{% url 'game_detail' game.pk %}" class="btn btn-primary">
                     {% if game.status == 'approved' %}Играть{% else %}Подробнее{% endif %}
                 </a>
-                
 
-                    <a href="{% url 'game_edit' game.pk %}" class="btn btn-secondary">Редактировать</a>
-
+                {% if user.is_authenticated %}
+                    {% if game.can_edit %}
+                        <a href="{% url 'game_edit' game.pk %}" class="btn btn-secondary">Редактировать</a>
+                    {% endif %}
+                {% endif %}
             </div>
         </div>
     </div>
@@ -55,4 +110,38 @@
     </div>
     {% endfor %}
 </div>
+
+<!-- Пагинация -->
+{% if games.has_other_pages %}
+<div class="pagination">
+    <div class="pagination-info">
+        Страница {{ games.number }} из {{ games.paginator.num_pages }}
+    </div>
+
+    <div class="pagination-links">
+        {% if games.has_previous %}
+            <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by != 'newest' %}&sort={{ sort_by }}{% endif %}"
+               class="pagination-link">« Первая</a>
+            <a href="?page={{ games.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by != 'newest' %}&sort={{ sort_by }}{% endif %}"
+               class="pagination-link">‹ Назад</a>
+        {% endif %}
+
+        {% for num in games.paginator.page_range %}
+            {% if games.number == num %}
+                <span class="pagination-link active">{{ num }}</span>
+            {% elif num > games.number|add:'-3' and num < games.number|add:'3' %}
+                <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by != 'newest' %}&sort={{ sort_by }}{% endif %}"
+                   class="pagination-link">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if games.has_next %}
+            <a href="?page={{ games.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by != 'newest' %}&sort={{ sort_by }}{% endif %}"
+               class="pagination-link">Вперед ›</a>
+            <a href="?page={{ games.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if sort_by != 'newest' %}&sort={{ sort_by }}{% endif %}"
+               class="pagination-link">Последняя »</a>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
 {% endblock %}
